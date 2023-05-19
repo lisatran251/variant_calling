@@ -1,22 +1,17 @@
 ## bcftools
 # run .sh script to convert .sam to .bam files 
 sbatch convertsamtobam.sh
-(The commands used in this analysis are provided in Appendix A.) 
 
-# sort .bam files and output them as .sorted.bam files including read 
-depth (DP) and allele depth (AD) and exclude indels in the outputs 
+# sort .bam files and output them as .sorted.bam files including read depth (DP) and allele depth (AD) and exclude indels in the outputs 
 find . -type f -name '*.bam' -exec sh -c 'samtools sort -o 
 "${1%.bam}.sorted.bam" "$1"' _ {} \;
 
 # convert sorted.bam files to bcf files
-bcftools mpileup -a DP,AD --skip-indels -P ILLUMINA -f 
-../burbot_2021.fasta *.sorted.bam -o burbot_bcftools.bcf 
+bcftools mpileup -a DP,AD --skip-indels -P ILLUMINA -f ../burbot_2021.fasta *.sorted.bam -o burbot_bcftools.bcf 
 
 # convert .bcf files to one .vcf file 
-# # output variant sites only, output genotype quality (GQ) for each 
-sample, skip indels from output, only include variants with quality score 
-(QUAL) greater than 20, include only biallelic variants, include only 
-SNPs, output in uncompresses .vcf format
+# # output variant sites only, output genotype quality (GQ) for each sample, skip indels from output, only include variants with quality score 
+(QUAL) greater than 20, include only biallelic variants, include only SNPs, output in uncompresses .vcf format
 bcftools call -m --variants-only --format-fields GQ --skip-variants indels 
 burbot_bcftools.bcf | bcftools filter --set-GTs . --include 'QUAL > 20' |  
 bcftools view --min-alleles 2 --max-alleles 2 --types snps --apply-filter 
